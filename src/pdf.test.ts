@@ -98,6 +98,21 @@ describe('signature geometry', () => {
 });
 
 describe('PDF export', () => {
+  it('draws signatures above existing PDF text', async () => {
+    const source = await PDFDocument.create();
+    source.addPage([600, 800]).drawText('Contractor', { x: 100, y: 400 });
+    const result = await signPdf(await source.save(), [placement], new Map([[1, await viewport()]]));
+    const document = await getDocument({ data: result, isEvalSupported: false }).promise;
+    try {
+      const { fnArray } = await (await document.getPage(1)).getOperatorList();
+      const text = fnArray.lastIndexOf(OPS.showText);
+      expect(text).toBeGreaterThanOrEqual(0);
+      expect(fnArray.lastIndexOf(OPS.paintImageXObject)).toBeGreaterThan(text);
+    } finally {
+      await document.destroy();
+    }
+  });
+
   it('exports three visible copies of the same signature on one page', async () => {
     const source = await PDFDocument.create();
     source.addPage([600, 800]);

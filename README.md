@@ -32,6 +32,10 @@ npm run preview
 - For an image on white paper, leave **Remove white background** enabled.
   Disable it before importing if you want to preserve the original image
   background/colors. This setting does not change already imported images.
+- **Opaque signature ink on import** is enabled by default with white-background
+  removal. It makes visible ink pixels fully opaque, so strokes cover overlapping
+  document text without adding a white rectangle. Turn it off to retain softer,
+  translucent ink. Re-upload images to apply a changed import setting.
 - Drag a signature thumbnail onto the PDF, or click/tap it to insert at the
   center, then drag to position. Select a signature
   and drag its bottom-right corner handle or use the size slider to resize.

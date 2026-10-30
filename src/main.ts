@@ -3,7 +3,7 @@ import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy, type PageViewp
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { PDFDocument } from 'pdf-lib';
 import { clamp, signPdf, signatureBounds, resizeSignatureBounds, type PagePoint, type Placement } from './pdf';
-import type { Signature } from './library';
+import { removeWhiteBackground, type Signature } from './library';
 
 GlobalWorkerOptions.workerSrc = workerUrl;
 
@@ -19,6 +19,7 @@ const layer = element('signature-layer');
 const downloadButton = element<HTMLButtonElement>('download');
 const sizeInput = element<HTMLInputElement>('signature-size');
 const removeWhite = element<HTMLInputElement>('remove-white');
+const opaqueInk = element<HTMLInputElement>('opaque-ink');
 
 let pdf: PDFDocumentProxy | undefined;
 let original: Uint8Array | undefined;
@@ -58,6 +59,7 @@ function updateControls() {
   element<HTMLButtonElement>('remove-signature').disabled = busy;
   element<HTMLButtonElement>('upload-variants').disabled = libraryBusy;
   removeWhite.disabled = libraryBusy;
+  opaqueInk.disabled = libraryBusy || !removeWhite.checked;
   for (const button of element('signature-library').querySelectorAll('button')) {
     button.disabled = !pdf || busy || libraryBusy;
     button.draggable = !button.disabled && !matchMedia('(pointer: coarse)').matches;
@@ -297,6 +299,7 @@ async function decodeSignatureFile(file: File) {
 function signatureImage(
   source: HTMLImageElement,
   removeBackground: boolean,
+  makeInkOpaque: boolean,
 ): { image: string; ratio: number } {
   const canvas = document.createElement('canvas');
   const scale = Math.min(1, 1600 / Math.max(source.width, source.height));
@@ -306,20 +309,11 @@ function signatureImage(
   if (!context) throw new Error('Cannot create a signature image.');
   context.drawImage(source, 0, 0, canvas.width, canvas.height);
   const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+  if (removeBackground) removeWhiteBackground(pixels.data, makeInkOpaque);
   let minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
   for (let y = 0; y < canvas.height; y++) {
     for (let x = 0; x < canvas.width; x++) {
       const offset = (y * canvas.width + x) * 4;
-      if (removeBackground) {
-        const minimum = Math.min(pixels.data[offset], pixels.data[offset + 1], pixels.data[offset + 2]);
-        const alpha = 1 - minimum / 255;
-        pixels.data[offset + 3] = Math.round(pixels.data[offset + 3] * alpha);
-        if (alpha > 0) {
-          for (let channel = 0; channel < 3; channel++) {
-            pixels.data[offset + channel] = Math.round((pixels.data[offset + channel] - minimum) / alpha);
-          }
-        }
-      }
       if (pixels.data[offset + 3] > 8) {
         minX = Math.min(minX, x); minY = Math.min(minY, y);
         maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
@@ -435,6 +429,7 @@ async function libraryOperation(operation: () => Promise<void>) {
 }
 
 const variantsInput = element<HTMLInputElement>('variants-input');
+removeWhite.addEventListener('change', updateControls);
 element('upload-variants').addEventListener('click', () => variantsInput.click());
 variantsInput.addEventListener('change', () => {
   const files = Array.from(variantsInput.files ?? []);
@@ -443,13 +438,14 @@ variantsInput.addEventListener('change', () => {
     const failures: string[] = [];
     let imported = 0;
     const removeBackground = removeWhite.checked;
+    const makeInkOpaque = opaqueInk.checked;
     for (const file of files) {
       try {
         const image = await decodeSignatureFile(file);
         signatures.push({
           id: String(nextSignatureId++),
           name: file.name.replace(/\.[^.]+$/, '').slice(0, 80),
-          ...signatureImage(image, removeBackground),
+          ...signatureImage(image, removeBackground, makeInkOpaque),
         });
         imported++;
       } catch (error) {
