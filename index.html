@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f4f0" />
+    <title>Paperwork — PDF signer</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <a class="brand" href="./"><span class="brand-mark">p.</span> paperwork<span class="brand-tag">SIGN</span></a>
+        <span class="privacy"><span class="status-dot"></span> Your PDF and signatures stay in your browser.</span>
+      </header>
+      <main>
+        <section class="intro"><div class="eyebrow">LESS PRINTING. MORE DOING.</div><h1>Your signature.<br /><span>Without the paperwork.</span></h1><p>Upload a PDF and your signatures, place them, and download.</p></section>
+        <div class="workspace">
+          <aside class="sidebar">
+            <section class="panel">
+              <div class="section-title"><span class="step">01</span><h2>Your document</h2></div>
+              <label class="file-drop" id="pdf-drop" tabindex="0">
+                <input id="pdf-input" type="file" accept="application/pdf,.pdf" hidden />
+                <span class="upload-icon">↑</span><strong id="file-label">Choose a PDF</strong><span>or drop it right here</span>
+              </label>
+              <p class="small" id="file-meta">Your original file stays untouched.</p>
+            </section>
+            <section class="panel library-panel" aria-label="Uploaded signatures">
+              <div class="section-title"><span class="step">02</span><h2>Your signatures</h2></div>
+              <label class="checkbox"><input id="remove-white" type="checkbox" checked /> Remove white background on import</label>
+              <input id="variants-input" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden />
+              <button id="upload-variants" class="secondary">Upload signature images</button>
+              <p class="small">Select several PNG, JPG, or WebP images at once. Upload again to add more.</p>
+              <p class="library-help">Tap a signature to add it, then drag it into place on the PDF. On desktop, you can also drag a thumbnail onto the page.</p>
+              <div id="signature-library" class="signature-library" aria-live="polite"></div>
+              <p id="library-status" class="small">No signatures yet. Upload a batch to get started.</p>
+              <p class="small">Drag to move. Drag the corner handle to resize.</p>
+            </section>
+            <div class="local-note"><span>✓</span><p><strong>Only in your browser.</strong><br />No files are sent to a server. Refreshing clears your document and signatures.</p></div>
+          </aside>
+          <section class="document-panel" aria-label="PDF workspace">
+            <div class="document-toolbar"><div class="document-name"><span class="document-icon">▤</span><span id="document-name">Document preview</span></div><div class="page-controls"><button id="previous-page" aria-label="Previous page" disabled>‹</button><span id="page-label">No document</span><button id="next-page" aria-label="Next page" disabled>›</button></div></div>
+            <div id="preview-scroll">
+              <div id="empty-state"><div class="paper-illustration"><div></div><div></div><div></div><span>sign here</span></div><h2>A little less paper.<br />A lot less hassle.</h2><p>Your PDF preview will appear here.<br />Start by choosing a document on the left.</p><span class="empty-caption">OPEN · SIGN · DOWNLOAD</span></div>
+              <div id="pdf-stage" hidden><canvas id="pdf-canvas"></canvas><div id="signature-layer" aria-label="Placed signatures"></div></div>
+            </div>
+            <div id="placement-tools" class="placement-tools" hidden>
+              <div class="size-label"><label for="signature-size">Signature size</label><span class="placement-actions"><button id="duplicate-signature" class="text-button">Duplicate</button><button id="remove-signature" class="text-button danger">Remove</button></span></div>
+              <input id="signature-size" type="range" min="1" max="90" step="0.1" value="7" aria-label="Signature size" />
+            </div>
+            <div class="document-footer"><span id="placement-count">Ready when you are.</span><button id="download" class="download-button" disabled>Download signed PDF <span>↓</span></button></div>
+          </section>
+        </div>
+        <div id="message" role="status" aria-live="polite" hidden></div>
+        <footer><span>A simpler way to sign.</span><span>Visible signatures only. Not a certificate-based digital signature.</span></footer>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
